@@ -24,7 +24,7 @@ from datetime import timedelta
 # print('北京时：',t_bj,'\n世界时：',t_utc)
 
 #指定时刻 世界时转北京时
-time='2024071216'
+time='2024062116'
 t_utc= datetime.datetime.strptime(time,'%Y%m%d%H') #字符串转换为时间戳
 t_bj = t_utc+timedelta(hours=8) #将世界时转换为北京时
 # print('\n')
