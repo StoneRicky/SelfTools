@@ -12,8 +12,8 @@ def calculate_distance(coord1, coord2):
     return distance
 
 # 示例坐标
-coordinate1 = (36.054142, 120.29256099999999)
-coordinate2 = (36.053976, 120.29264699999999)  
+coordinate1 = (36.070467, 120.313896)
+coordinate2 = (36.070657, 120.313892)  
 
 # 计算距离
 distance = calculate_distance(coordinate1, coordinate2) * 1000
