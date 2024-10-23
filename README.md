@@ -6,3 +6,9 @@
 
 ## UtcToCst.py
 utc时间转换为北京时间
+
+## Mp4Duration.py
+读取视频文件的时间长度
+
+## iitcDraw.json
+用于iitc的json文件
