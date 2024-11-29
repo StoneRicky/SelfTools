@@ -28,7 +28,7 @@ print('世界时间（UTC）转换为北京时间（CST）')
 print('输入世界时间，可进行转换，格式为纯数字，年月日时')
 print('例：2000010100')
 # time= input('请输入时间：')
-time='2024072616'
+time='2024110817'
 t_utc= datetime.datetime.strptime(time,'%Y%m%d%H') #字符串转换为时间戳
 t_bj = t_utc+timedelta(hours=8) #将世界时转换为北京时
 # print('\n')
