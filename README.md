@@ -12,3 +12,6 @@ utc时间转换为北京时间
 
 ## iitcDraw.json
 用于iitc的json文件
+
+## forEachNfoFile.py
+遍历更新nfo文件的具体信息
