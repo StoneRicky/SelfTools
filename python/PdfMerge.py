@@ -6,6 +6,8 @@ def merge_pdfs(paths, output):
     pdf_writer = PyPDF2.PdfWriter()
  
     for path in paths:
+        if(not path.endswith(".pdf")):
+            continue
         pdf_reader = PyPDF2.PdfReader(path)
         for page in range(len(pdf_reader.pages)):
             pdf_writer.add_page(pdf_reader.pages[page])
@@ -20,9 +22,10 @@ def main(data_dir):
     file_paths = []
     for name in names:
         file_paths.append(os.path.join(data_dir, name))
- 
+        
+    os.makedirs(data_dir+"./合并后的PDF", exist_ok=True)
     output = os.path.join(data_dir, "合并后的PDF/merge_%02d.pdf" % len(names))  # 合并后的PDF文件路径
-    os.makedirs("./合并后的PDF", exist_ok=True)
+    
  
     merge_pdfs(file_paths, output)
     print("合并后文件：", output)
@@ -35,4 +38,5 @@ def argv_parse():
 if __name__ == "__main__":
     argv = argv_parse()
     print("argv:", argv)
-    main(argv.data_dir)
+    # main(argv.data_dir)
+    main("D:\\OneDrive\\Work\\Medcare\\报销\\2025\\2025-05")
