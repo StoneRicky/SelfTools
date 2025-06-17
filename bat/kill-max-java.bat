@@ -24,7 +24,7 @@ for /f "tokens=2,5" %%a in ('tasklist /fi "imagename eq java.exe" /nh 2^>nul') d
 REM 终止目标进程
 if defined target_pid (
     echo 正在终止ֹPID [!target_pid!]（内存使用: !max_mem!KB）
-    @REM taskkill /pid !target_pid! /f
+    taskkill /pid !target_pid! /f
 ) else (
     echo 没有找到Java进程
 )
