@@ -1,0 +1,4 @@
+#  导出文件的默认字体的位置
+# 一个ttc如果有多个字体，则需要加0选中某个字体
+exportPdf:
+  font: C:/Windows/Fonts/simsun.ttc
