@@ -15,3 +15,6 @@ utc时间转换为北京时间
 
 ## [forEachNfoFile.py](https://github.com/StoneRicky/SelfTools/blob/main/python/forEachNfoFile.py) 
 遍历更新nfo文件的具体信息
+
+## [GenAllGpsToIitcJson.py](https://github.com/StoneRicky/SelfTools/blob/main/python/GenAllGpsToIitcJson.py) 
+将范围内的gps整数坐标转换成可导入iitc的json文件
