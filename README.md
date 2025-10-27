@@ -18,3 +18,6 @@ utc时间转换为北京时间
 
 ## [GenAllGpsToIitcJson.py](https://github.com/StoneRicky/SelfTools/blob/main/python/GenAllGpsToIitcJson.py) 
 将范围内的gps整数坐标转换成可导入iitc的json文件
+
+## [PdfMerge.py](https://github.com/StoneRicky/SelfTools/blob/main/python/PdfMerge.py) 
+合并多个pdf文件为1个，方便发票打印
