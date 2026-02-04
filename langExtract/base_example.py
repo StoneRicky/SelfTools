@@ -52,7 +52,7 @@ model_config = lx.factory.ModelConfig(
     model_id="QwQ-32B",
     provider="OpenAILanguageModel",
     provider_kwargs={
-        "base_url": "http://192.168.6.62:8000/v1",  # 这里的不能使用下面的URL，要用base_url
+        "base_url": "http://x.x.x.x:8000/v1",  # 这里的不能使用下面的URL，要用base_url
         "format_type": lx.data.FormatType.JSON,
         "temperature": 0.1,
         "api_key": "123",
