@@ -36,11 +36,15 @@
 
 ## 📁 iitc/ (IITC 地图相关工具)
 
-### 🔗 [gpx2draw.py](iitc/gpx2draw/gpx2draw.py) _(位于 `iitc/gpx2draw/`)_
+### 🔗 [iitcDraw.json](iitc/iitcDraw.json)
+
+- **功能描述**: 用于 IITC 导入的 JSON 配置文件。
+
+### 🔗 [gpx2draw.py](iitc/gpx2draw/gpx2draw.py)
 
 - **功能描述**: 解析 GPX 轨迹文件，将其转换成可直接导入 IITC 绘制折线（polyline）的 JSON 文件。
 
-### 🔗 [GenAllGpsToIitcJson.py](iitc/intGps/GenAllGpsToIitcJson.py) _(位于 `iitc/intGps/`)_
+### 🔗 [GenAllGpsToIitcJson.py](iitc/intGps/GenAllGpsToIitcJson.py)
 
 - **功能描述**: 将指定范围内的 GPS 整数坐标快速转换成可导入 IITC 的 JSON 画线/标记文件。
 
@@ -70,9 +74,14 @@
 
 ---
 
-## 📁 根目录其他辅助文件
+## 📁 bat/ (Windows 批处理工具)
 
-### 🔗 [iitcDraw.json](iitcDraw.json)
+### 🔗 [kill-max-java.bat](bat/kill-max-java.bat)
 
-- **功能描述**: 用于 IITC 导入的 JSON 配置文件。
+- **功能描述**: 扫描系统中所有的 `java.exe` 进程，找出内存占用最大且超过设定阈值的进程并强制终止（Kill），常用于清理内存占用过高的后台 Java 服务。
+
+### 🔗 [mysql-backup.bat](bat/mysql-backup.bat)
+
+- **功能描述**: 自动请求管理员权限，备份指定的 MySQL 数据库，并使用 7 天轮转机制（`D1` 到 `D7` 目录）自动清理旧备份，支持记录详细的备份和错误日志。
+
 
