@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>楼层采光计算器</title>
+    <style>
+      :root {
+        --primary: #4f46e5;
+        --primary-hover: #4338ca;
+        --bg-color: #f3f4f6;
+        --card-bg: #ffffff;
+        --text-main: #1f2937;
+        --text-muted: #6b7280;
+        --border-color: #e5e7eb;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        margin: 0;
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+      }
+
+      .container {
+        max-width: 1000px;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow:
+          0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      h2 {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+        color: var(--text-main);
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 0.5rem;
+      }
+
+      .form-group {
+        margin-bottom: 1rem;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-main);
+      }
+
+      input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 1rem;
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+      }
+
+      button {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: 1rem;
+      }
+
+      button:hover {
+        background-color: var(--primary-hover);
+      }
+
+      .results-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .legend {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+      }
+
+      .floor-list {
+        display: flex;
+        flex-direction: column-reverse; /* Bottom floor at bottom */
+        gap: 2px;
+        position: relative;
+        padding-bottom: 4px;
+      }
+
+      .floor-list::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 4px;
+        background-color: #65a30d;
+        border-radius: 2px;
+      }
+
+      .floor-item {
+        display: flex;
+        align-items: stretch;
+        gap: 12px;
+        font-size: 0.95rem;
+      }
+
+      .floor-graphic {
+        width: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 11px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+
+      .floor-content {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 6px;
+        flex-grow: 1;
+      }
+
+      .floor-item.clear .floor-graphic {
+        background-color: var(--success);
+      }
+      .floor-item.clear .floor-content {
+        background-color: rgba(16, 185, 129, 0.1);
+      }
+
+      .floor-item.partial .floor-graphic {
+        background-color: var(--warning);
+      }
+      .floor-item.partial .floor-content {
+        background-color: rgba(245, 158, 11, 0.1);
+      }
+
+      .floor-item.blocked .floor-graphic {
+        background-color: var(--danger);
+      }
+      .floor-item.blocked .floor-content {
+        background-color: rgba(239, 68, 68, 0.1);
+      }
+
+      .floor-number {
+        font-weight: bold;
+        width: 60px;
+      }
+
+      .floor-desc {
+        flex-grow: 1;
+      }
+
+      .summary-box {
+        background-color: rgba(79, 70, 229, 0.1);
+        border: 1px solid rgba(79, 70, 229, 0.2);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+      }
+
+      .summary-box p {
+        margin: 0.5rem 0;
+        font-weight: 500;
+      }
+
+      .schematic svg * {
+        transition: all 0.3s ease-out;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Input Section -->
+      <div class="card">
+        <h2>参数输入及图解</h2>
+
+        <div
+          class="schematic"
+          style="text-align: center; margin-bottom: 1.5rem"
+        >
+          <svg
+            viewBox="0 0 400 200"
+            style="
+              max-width: 100%;
+              border: 1px solid var(--border-color);
+              border-radius: 8px;
+              background: #e0f2fe;
+              padding: 10px;
+              box-sizing: border-box;
+            "
+          >
+            <defs>
+              <marker
+                id="arrow"
+                viewBox="0 0 10 10"
+                refX="5"
+                refY="5"
+                markerWidth="4"
+                markerHeight="4"
+                orient="auto-start-reverse"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" />
+              </marker>
+            </defs>
+            <!-- Ground -->
+            <path
+              id="svg-ground-path"
+              d="M 0 170 L 400 170"
+              fill="none"
+              stroke="#65a30d"
+              stroke-width="4"
+            />
+
+            <!-- Sun and Ray -->
+            <circle id="svg-sun" cx="340" cy="30" r="15" fill="#fbbf24" />
+            <line
+              id="svg-sun-ray"
+              x1="340"
+              y1="30"
+              x2="50"
+              y2="170"
+              stroke="#fcd34d"
+              stroke-width="2"
+              stroke-dasharray="5,5"
+            />
+
+            <!-- Target Building -->
+            <rect
+              id="svg-target-building"
+              x="50"
+              y="80"
+              width="40"
+              height="90"
+              fill="#3b82f6"
+              fill-opacity="0.8"
+            />
+            <text
+              id="svg-target-text"
+              x="70"
+              y="130"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+            >
+              目标楼
+            </text>
+
+            <!-- Front Building -->
+            <rect
+              id="svg-front-building"
+              x="250"
+              y="50"
+              width="40"
+              height="120"
+              fill="#9ca3af"
+            />
+            <!-- Parapet -->
+            <rect
+              id="svg-parapet"
+              x="250"
+              y="40"
+              width="40"
+              height="10"
+              fill="#4b5563"
+            />
+            <text
+              id="svg-front-text"
+              x="270"
+              y="110"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+            >
+              前楼
+            </text>
+
+            <!-- Distance -->
+            <line
+              id="svg-dist-line"
+              x1="90"
+              y1="160"
+              x2="250"
+              y2="160"
+              stroke="#ef4444"
+              stroke-width="2"
+              marker-start="url(#arrow)"
+              marker-end="url(#arrow)"
+            />
+            <text
+              id="svg-dist-text"
+              x="170"
+              y="155"
+              text-anchor="middle"
+              fill="#ef4444"
+              font-size="11"
+            >
+              楼间距
+            </text>
+          </svg>
+        </div>
+
+        <div class="form-group">
+          <label for="latitude">所处纬度 (度) (例如：青岛 36.2)</label>
+          <input type="number" id="latitude" value="36.2" step="0.1" />
+        </div>
+
+        <div class="form-group">
+          <label for="distance">楼间距 (米)</label>
+          <input type="number" id="distance" value="29" step="0.1" />
+        </div>
+
+        <div class="form-group">
+          <label for="front-floors">前楼层数 (层)</label>
+          <input type="number" id="front-floors" value="17" />
+        </div>
+
+        <div class="form-group">
+          <label for="my-floors">目标楼层数 (层)</label>
+          <input type="number" id="my-floors" value="17" />
+        </div>
+
+        <div class="form-group">
+          <label for="floor-height">标准层高 (米)</label>
+          <input type="number" id="floor-height" value="3.05" step="0.01" />
+        </div>
+
+        <div class="form-group">
+          <label for="parapet">前楼女儿墙及屋顶设备高度 (米)</label>
+          <input type="number" id="parapet" value="1.5" step="0.1" />
+        </div>
+
+        <div class="form-group">
+          <label for="elevation"
+            >相对附加高度 (米) <br /><small
+              style="color: var(--text-muted); font-weight: normal"
+              >(正数表示目标楼地势比前楼低，负数表示高)</small
+            ></label
+          >
+          <input type="number" id="elevation" value="0" step="0.1" />
+        </div>
+
+        <button onclick="calculate()">计算采光情况</button>
+      </div>
+
+      <!-- Output Section -->
+      <div class="card results-container">
+        <h2>计算结果</h2>
+
+        <div id="summary" class="summary-box" style="display: none">
+          <!-- Summary will be populated here -->
+        </div>
+
+        <div class="legend">
+          <div class="legend-item">
+            <div
+              class="legend-color"
+              style="background-color: var(--success)"
+            ></div>
+            <span>全年无遮挡</span>
+          </div>
+          <div class="legend-item">
+            <div
+              class="legend-color"
+              style="background-color: var(--warning)"
+            ></div>
+            <span>部分月份遮挡</span>
+          </div>
+          <div class="legend-item">
+            <div
+              class="legend-color"
+              style="background-color: var(--danger)"
+            ></div>
+            <span>全年遮挡</span>
+          </div>
+        </div>
+
+        <div class="result-visualization">
+          <!-- Floor List -->
+          <div class="floor-list" id="floor-list" style="flex-grow: 1">
+            <div
+              style="
+                color: var(--text-muted);
+                text-align: center;
+                padding: 2rem 0;
+              "
+            >
+              请点击左侧计算按钮获取结果
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 计算某个月份中旬的太阳赤纬角（近似值）
+      // 月份 1-12
+      function getDeclination(month) {
+        // 每个月中旬（15日）在一年中的天数
+        const days = [15, 46, 74, 105, 135, 166, 196, 227, 258, 288, 319, 349];
+        const n = days[month - 1];
+        // 赤纬角公式 δ = 23.45 * sin(360 * (284 + n) / 365)
+        const angle =
+          23.45 * Math.sin(((360 * (284 + n)) / 365) * (Math.PI / 180));
+        return angle;
+      }
+
+      // 计算正午太阳高度角
+      function getSolarAltitude(latitude, declination) {
+        return 90 - Math.abs(latitude - declination);
+      }
+
+      function updateSchematic() {
+        const distM =
+          parseFloat(document.getElementById("distance").value) || 0.1;
+        const frontFloors =
+          parseInt(document.getElementById("front-floors").value) || 0;
+        const myFloors =
+          parseInt(document.getElementById("my-floors").value) || 0;
+        const floorHeight =
+          parseFloat(document.getElementById("floor-height").value) || 0;
+        const parapetM =
+          parseFloat(document.getElementById("parapet").value) || 0;
+        const elevationM =
+          parseFloat(document.getElementById("elevation").value) || 0;
+
+        const frontHeightM = frontFloors * floorHeight;
+        const myHeightM = myFloors * floorHeight;
+
+        const targetBaseM = 0;
+        const frontBaseM = elevationM;
+
+        const frontTopM = frontBaseM + frontHeightM;
+        const frontParapetTopM = frontTopM + parapetM;
+        const targetTopM = targetBaseM + myHeightM;
+
+        const maxVerticalM = Math.max(frontParapetTopM, targetTopM, 10);
+        const minVerticalM = Math.min(frontBaseM, targetBaseM);
+        const verticalRangeM = maxVerticalM - minVerticalM;
+
+        const scaleY = 120 / (verticalRangeM || 1);
+        const scaleX = 220 / (distM || 1);
+
+        const bWidthPx = 40;
+        const groundY = 170;
+
+        const mapY = (m) => groundY - (m - minVerticalM) * scaleY;
+
+        const targetBasePx = mapY(targetBaseM);
+        const targetTopPx = mapY(targetTopM);
+        const frontBasePx = mapY(frontBaseM);
+        const frontTopPx = mapY(frontTopM);
+        const frontParapetTopPx = mapY(frontParapetTopM);
+
+        const targetX = 40;
+        const frontX = targetX + bWidthPx + distM * scaleX;
+
+        document
+          .getElementById("svg-target-building")
+          .setAttribute("x", targetX);
+        document
+          .getElementById("svg-target-building")
+          .setAttribute("y", targetTopPx);
+        document
+          .getElementById("svg-target-building")
+          .setAttribute("height", Math.max(0, targetBasePx - targetTopPx));
+        document
+          .getElementById("svg-target-text")
+          .setAttribute("x", targetX + bWidthPx / 2);
+        document
+          .getElementById("svg-target-text")
+          .setAttribute(
+            "y",
+            targetTopPx + Math.max(0, targetBasePx - targetTopPx) / 2 + 4,
+          );
+
+        document.getElementById("svg-front-building").setAttribute("x", frontX);
+        document
+          .getElementById("svg-front-building")
+          .setAttribute("y", frontTopPx);
+        document
+          .getElementById("svg-front-building")
+          .setAttribute("height", Math.max(0, frontBasePx - frontTopPx));
+        document
+          .getElementById("svg-front-text")
+          .setAttribute("x", frontX + bWidthPx / 2);
+        document
+          .getElementById("svg-front-text")
+          .setAttribute(
+            "y",
+            frontTopPx + Math.max(0, frontBasePx - frontTopPx) / 2 + 4,
+          );
+
+        document.getElementById("svg-parapet").setAttribute("x", frontX);
+        document
+          .getElementById("svg-parapet")
+          .setAttribute("y", frontParapetTopPx);
+        document
+          .getElementById("svg-parapet")
+          .setAttribute("height", Math.max(0, frontTopPx - frontParapetTopPx));
+
+        const distLineY = Math.min(targetBasePx, frontBasePx) - 10;
+        document
+          .getElementById("svg-dist-line")
+          .setAttribute("x1", targetX + bWidthPx);
+        document.getElementById("svg-dist-line").setAttribute("y1", distLineY);
+        document.getElementById("svg-dist-line").setAttribute("x2", frontX);
+        document.getElementById("svg-dist-line").setAttribute("y2", distLineY);
+        document
+          .getElementById("svg-dist-text")
+          .setAttribute("x", targetX + bWidthPx + (distM * scaleX) / 2);
+        document
+          .getElementById("svg-dist-text")
+          .setAttribute("y", distLineY - 5);
+
+        const stepX = targetX + bWidthPx + (distM * scaleX) / 2;
+        document
+          .getElementById("svg-ground-path")
+          .setAttribute(
+            "d",
+            `M 0 ${targetBasePx} L ${stepX} ${targetBasePx} L ${stepX} ${frontBasePx} L 400 ${frontBasePx}`,
+          );
+
+        const sunX = Math.min(380, frontX + bWidthPx + 30);
+        const sunY = 20;
+        document.getElementById("svg-sun").setAttribute("cx", sunX);
+        document.getElementById("svg-sun").setAttribute("cy", sunY);
+        document.getElementById("svg-sun-ray").setAttribute("x1", sunX);
+        document.getElementById("svg-sun-ray").setAttribute("y1", sunY);
+        document
+          .getElementById("svg-sun-ray")
+          .setAttribute("x2", targetX + bWidthPx);
+        document.getElementById("svg-sun-ray").setAttribute("y2", targetBasePx);
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const inputs = document.querySelectorAll(".form-group input");
+        inputs.forEach((input) => {
+          input.addEventListener("input", updateSchematic);
+        });
+        updateSchematic();
+      });
+
+      function calculate() {
+        const lat = parseFloat(document.getElementById("latitude").value);
+        const dist = parseFloat(document.getElementById("distance").value);
+        const frontFloors = parseInt(
+          document.getElementById("front-floors").value,
+        );
+        const myFloors = parseInt(document.getElementById("my-floors").value);
+        const floorHeight = parseFloat(
+          document.getElementById("floor-height").value,
+        );
+        const parapet = parseFloat(document.getElementById("parapet").value);
+        const elevation = parseFloat(
+          document.getElementById("elevation").value,
+        );
+
+        // 前楼总高度（考虑相对地势）
+        const frontTotalHeight =
+          frontFloors * floorHeight + parapet + elevation;
+
+        const floorListEl = document.getElementById("floor-list");
+        floorListEl.innerHTML = "";
+
+        let allClearCount = 0;
+        let partialClearCount = 0;
+
+        // 从第1层到最高层计算
+        for (let f = 1; f <= myFloors; f++) {
+          // 目标楼层窗台高度 (假设窗台距离本层地面 0.9 米，如果考虑全落地窗可设为0，这里按严格考虑，光线到达窗台即算)
+          // 这里采用保守算法：计算该层地板的高度，即最不利情况
+          const myHeight = (f - 1) * floorHeight;
+
+          let blockedMonths = 0;
+          let blockedMonthsList = [];
+
+          for (let m = 1; m <= 12; m++) {
+            const dec = getDeclination(m);
+            const altitude = getSolarAltitude(lat, dec);
+
+            // tan(h) = (前楼高 - 目标高) / 阴影长度
+            // 阴影高度(在目标楼处) = 前楼高 - 楼间距 * tan(h)
+            const tanH = Math.tan(altitude * (Math.PI / 180));
+            const shadowHeightAtMyBuilding = frontTotalHeight - dist * tanH;
+
+            // 如果阴影高度大于目标楼层高度，则认为该月正午会被遮挡
+            if (shadowHeightAtMyBuilding > myHeight) {
+              blockedMonths++;
+              blockedMonthsList.push(m);
+            }
+          }
+
+          const item = document.createElement("div");
+          item.className = "floor-item";
+
+          let statusText = "";
+
+          if (blockedMonths === 0) {
+            item.classList.add("clear");
+            statusText = "全年无遮挡";
+            allClearCount++;
+          } else if (blockedMonths < 12) {
+            item.classList.add("partial");
+            statusText = `遮挡 ${blockedMonths} 个月 (${blockedMonthsList.join("、")}月)`;
+            partialClearCount++;
+          } else {
+            item.classList.add("blocked");
+            statusText = "全年遮挡";
+          }
+
+          item.innerHTML = `
+                    <div class="floor-graphic" title="${statusText}">${f}</div>
+                    <div class="floor-content">
+                        <div class="floor-number">${f}层</div>
+                        <div class="floor-desc">高度: ${myHeight.toFixed(1)}m | ${statusText}</div>
+                    </div>
+                `;
+
+          floorListEl.appendChild(item);
+        }
+
+        // 更新总结面板
+        const summaryEl = document.getElementById("summary");
+        summaryEl.style.display = "block";
+        summaryEl.innerHTML = `
+                <p>✨ 计算完成：</p>
+                <p>🌞 <strong>全年无遮挡：</strong> ${allClearCount > 0 ? `共 ${allClearCount} 层（${myFloors - allClearCount + 1}层 ~ ${myFloors}层）` : "无"}</p>
+                <p>⛅ <strong>部分月份遮挡：</strong> 共 ${partialClearCount} 层</p>
+                <p>📍 <strong>临界高度：</strong> 约 ${((myFloors - allClearCount) * floorHeight).toFixed(1)} 米以上可全年采光</p>
+            `;
+      }
+    </script>
+  </body>
+</html>
